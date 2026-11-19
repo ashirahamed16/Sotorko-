@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f5bea">
+<meta name="description" content="সতর্ক: সন্দেহজনক SMS, WhatsApp মেসেজ বা লিংক স্ক্যাম কিনা, ১০ সেকেন্ডে জানুন। বিনামূল্যে।">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>সতর্ক – Scam Checker</title>
+<style>
+  :root { --blue:#2f5bea; --bg:#f4f6fb; --card:#fff; --text:#1b1f2a; --muted:#5b6374;
+          --green:#1e9e4a; --yellow:#d99a00; --red:#d62f2f; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; font-family:system-ui,-apple-system,"Noto Sans Bengali","Segoe UI",sans-serif;
+         background:var(--bg); color:var(--text); padding-bottom:76px; }
+  header { background:linear-gradient(135deg,#2f5bea,#5a3fd6); color:#fff; padding:22px 18px 26px;
+           border-radius:0 0 24px 24px; }
+  header h1 { margin:0; font-size:26px; }
+  header p { margin:6px 0 0; opacity:.92; font-size:14px; }
+  main { max-width:520px; margin:-14px auto 0; padding:0 14px; }
+  .card { background:var(--card); border-radius:16px; padding:16px; margin-top:14px;
+          box-shadow:0 2px 10px rgba(30,40,80,.08); }
+  textarea { width:100%; height:150px; padding:12px; font-size:16px; border:1.5px solid #d3d9e8;
+             border-radius:12px; resize:vertical; font-family:inherit; }
+  textarea:focus { outline:none; border-color:var(--blue); }
+  .row { display:flex; gap:10px; margin-top:10px; }
+  button { font-family:inherit; font-size:16px; border:0; border-radius:12px; padding:13px;
+           cursor:pointer; font-weight:600; }
+  .primary { background:var(--blue); color:#fff; flex:1; }
+  .ghost { background:#e9edfb; color:var(--blue); }
+  .wa { background:#25a244; color:#fff; width:100%; margin-top:12px; }
+  #result { display:none; }
+  .badge { font-size:19px; font-weight:700; margin:0 0 6px; }
+  .scam { border-left:6px solid var(--red); } .scam .badge { color:var(--red); }
+  .maybe { border-left:6px solid var(--yellow); } .maybe .badge { color:var(--yellow); }
+  .safe { border-left:6px solid var(--green); } .safe .badge { color:var(--green); }
+  ul { padding-left:20px; margin:8px 0; } li { margin:5px 0; line-height:1.45; }
+  .meter { height:10px; background:#e4e8f3; border-radius:8px; overflow:hidden; margin:8px 0 10px; }
+  .meter div { height:100%; width:0; transition:width .5s; }
+  .help { background:#fff4f4; border:1px solid #f3c2c2; border-radius:12px; padding:12px; margin-top:12px; font-size:14px; }
+  .help a { color:var(--red); font-weight:700; text-decoration:none; }
+  .tip { display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px solid #eef0f6; }
+  .tip:last-child { border-bottom:0; }
+  .tip .ic { font-size:24px; } .tip b { display:block; margin-bottom:2px; }
+  .tip span { color:var(--muted); font-size:14px; line-height:1.45; }
+  nav { position:fixed; bottom:0; left:0; right:0; background:#fff; display:flex;
+        border-top:1px solid #e3e6f0; padding-bottom:env(safe-area-inset-bottom); }
+  nav button { flex:1; background:none; color:var(--muted); font-size:12px; padding:9px 0 8px; border-radius:0; }
+  nav button .ni { display:block; font-size:22px; }
+  nav button.active { color:var(--blue); }
+  .page { display:none; } .page.active { display:block; }
+  .founder { text-align:center; }
+  .founder .av { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#2f5bea,#5a3fd6);
+                 color:#fff; font-size:30px; display:flex; align-items:center; justify-content:center; margin:4px auto 10px; }
+  small.muted { color:var(--muted); }
+  #installBtn { display:none; margin-top:12px; width:100%; background:#fff; color:var(--blue); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛡️ সতর্ক</h1>
+  <p>সন্দেহজনক মেসেজ বা লিংক পেস্ট করুন, ১০ সেকেন্ডে জানুন স্ক্যাম কিনা</p>
+  <button id="installBtn" onclick="installApp()">📲 অ্যাপটি ফোনে ইনস্টল করুন</button>
+</header>
+
+<main>
+  <!-- CHECK PAGE -->
+  <section id="p-check" class="page active">
+    <div class="card">
+      <textarea id="msg" placeholder="SMS, WhatsApp মেসেজ বা লিংক এখানে পেস্ট করুন..."></textarea>
+      <div class="row">
+        <button class="ghost" onclick="pasteClip()">📋 পেস্ট</button>
+        <button class="primary" onclick="check()">যাচাই করুন</button>
+      </div>
+      <small class="muted">আপনার মেসেজ কোথাও পাঠানো হয় না। সব যাচাই আপনার ফোনেই হয়।</small>
+    </div>
+
+    <div id="result" class="card">
+      <p class="badge" id="title"></p>
+      <div class="meter"><div id="bar"></div></div>
+      <ul id="reasons"></ul>
+      <p id="advice"></p>
+      <div class="help" id="helpBox">
+        সাইবার প্রতারণার শিকার হলে এখনই ডায়াল করুন <a href="tel:1930">১৯৩০</a>
+        বা অভিযোগ করুন <a href="https://cybercrime.gov.in" target="_blank" rel="noopener">cybercrime.gov.in</a>-এ।
+      </div>
+      <button class="wa" onclick="share()">WhatsApp-এ শেয়ার করুন</button>
+      <small class="muted" style="display:block;margin-top:10px">এই টুল ১০০% নির্ভুল নয়। সন্দেহ থাকলে ব্যাংক বা অফিশিয়াল নম্বরে ফোন করে যাচাই করুন।</small>
+    </div>
+  </section>
+
+  <!-- TIPS PAGE -->
+  <section id="p-tips" class="page">
+    <div class="card">
+      <h3 style="margin:0 0 6px">স্ক্যাম থেকে বাঁচার ৮টি নিয়ম</h3>
+      <div class="tip"><span class="ic">🔑</span><div><b>OTP/PIN কাউকে দেবেন না</b><span>ব্যাংক, পুলিশ বা কোনো কোম্পানি কখনো OTP বা PIN চায় না।</span></div></div>
+      <div class="tip"><span class="ic">💸</span><div><b>টাকা পেতে PIN লাগে না</b><span>UPI-তে টাকা পাঠাতে PIN লাগে, পেতে লাগে না। "রিফান্ড পেতে PIN দিন" মানেই প্রতারণা।</span></div></div>
+      <div class="tip"><span class="ic">🎁</span><div><b>লটারি বা পুরস্কারের মেসেজ ভুয়ো</b><span>যে লটারিতে আপনি টিকিটই কাটেননি, তাতে জিততে পারেন না।</span></div></div>
+      <div class="tip"><span class="ic">🔗</span><div><b>অচেনা লিংকে ক্লিক নয়</b><span>bit.ly বা অদ্ভুত নামের লিংক দেখলে সাবধান। ব্যাংকের অ্যাপ বা ওয়েবসাইট নিজে খুলুন।</span></div></div>
+      <div class="tip"><span class="ic">📱</span><div><b>অচেনা APK বা অ্যাপ ইনস্টল নয়</b><span>AnyDesk বা TeamViewer ইনস্টল করতে বললে সঙ্গে সঙ্গে ফোন কেটে দিন।</span></div></div>
+      <div class="tip"><span class="ic">⏰</span><div><b>তাড়াহুড়ো মানেই সন্দেহ</b><span>"এখনই", "২৪ ঘণ্টার মধ্যে" বলে চাপ দেওয়া প্রতারকদের পুরনো কৌশল।</span></div></div>
+      <div class="tip"><span class="ic">💼</span><div><b>ঘরে বসে আয়ের অফার</b><span>আগে টাকা জমা দিয়ে চাকরি বা কাজ পাওয়া যায় না।</span></div></div>
+      <div class="tip"><span class="ic">📞</span><div><b>প্রতারিত হলে দেরি নয়</b><span>প্রথম ১ ঘণ্টায় ১৯৩০ নম্বরে জানালে টাকা আটকানোর সম্ভাবনা বেশি থাকে।</span></div></div>
+    </div>
+  </section>
+
+  <!-- ABOUT PAGE -->
+  <section id="p-about" class="page">
+    <div class="card founder">
+      <div class="av">A</div>
+      <h3 style="margin:0">আশির আহমেদ</h3>
+      <small class="muted">Ashir Ahamed · Founder, সতর্ক</small>
+      <p style="margin:12px 0 0;line-height:1.55">মালদা, সুজাপুরের ছেলে। বর্তমানে নিউটাউনে B.Tech CSE পড়ছে।
+         তার স্বপ্ন, প্রযুক্তি দিয়ে সাধারণ মানুষের পাশে দাঁড়ানো।</p>
+    </div>
+    <div class="card">
+      <b>সতর্ক কেন?</b>
+      <p style="line-height:1.55;margin:8px 0 0">প্রতিদিন হাজার হাজার মানুষ নকল SMS, ভুয়ো চাকরির অফার আর UPI প্রতারণার ফাঁদে পড়ছে।
+         এই অ্যাপ সম্পূর্ণ বিনামূল্যে, লগইন ছাড়া, ইন্টারনেট ছাড়াও চলে। আপনার পরিবারের WhatsApp গ্রুপে শেয়ার করুন, একজনকেও বাঁচাতে পারলে সার্থক।</p>
+    </div>
+    <div class="card">
+      <button class="wa" style="margin-top:0" onclick="shareApp()">বন্ধু ও পরিবারকে অ্যাপটি পাঠান</button>
+      <small class="muted" style="display:block;margin-top:10px;text-align:center">Version 1.0 · © Ashir Ahamed</small>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button class="active" data-p="check" onclick="go('check')"><span class="ni">🔍</span>যাচাই</button>
+  <button data-p="tips" onclick="go('tips')"><span class="ni">💡</span>সতর্কতা</button>
+  <button data-p="about" onclick="go('about')"><span class="ni">👤</span>আমাদের কথা</button>
+</nav>
+
+<script>
+/* ---------- Rules: pattern, points, reason ---------- */
+const RULES = [
+  { re:/otp|ওটিপি|\bpin\b|পিন|cvv|password|পাসওয়ার্ড/i, pts:3, why:"OTP, PIN বা পাসওয়ার্ড চাইছে। আসল ব্যাংক কখনো এগুলো চায় না।" },
+  { re:/kyc|কেওয়াইসি|account.{0,30}(block|suspend|band|close)|অ্যাকাউন্ট.{0,20}(ব্লক|বন্ধ|সাসপেন্ড)|ব্লক হয়ে|বন্ধ হয়ে যাবে/i, pts:3, why:"KYC আপডেট বা অ্যাকাউন্ট বন্ধ হওয়ার ভয় দেখাচ্ছে।" },
+  { re:/lottery|jackpot|prize|lucky draw|winner|you.?ve won|congratulations|লটারি|জ্যাকপট|পুরস্কার|বিজয়ী|জিতেছেন|অভিনন্দন/i, pts:3, why:"লটারি বা পুরস্কার জেতার লোভ দেখাচ্ছে।" },
+  { re:/work from home|part.?time job|data entry|earn.{0,12}\d|daily (income|earning)|ঘরে বসে.{0,15}(আয়|ইনকাম|টাকা)|পার্ট টাইম|প্রতিদিন.{0,10}(আয়|ইনকাম)/i, pts:3, why:"সহজ আয় বা ভুয়ো চাকরির অফারের মতো।" },
+  { re:/urgent|immediately|today only|last chance|within \d+ ?(hour|hr|min)|এখনই|এখুনি|জরুরি|অবিলম্বে|২৪ ঘণ্টা|২৪ ঘন্টা|শেষ সুযোগ/i, pts:2, why:"তাড়াহুড়ো করাচ্ছে, যাতে আপনি ভাবার সময় না পান।" },
+  { re:/send money|pay.{0,15}fee|registration fee|processing fee|advance|টাকা পাঠান|ফি জমা|রেজিস্ট্রেশন ফি|অগ্রিম/i, pts:3, why:"আগে টাকা পাঠাতে বলছে।" },
+  { re:/(upi|paytm|phonepe|gpay|google pay).{0,40}(refund|cashback|collect|request|pin)|collect request|রিফান্ড|ক্যাশব্যাক/i, pts:3, why:"UPI-তে টাকা পাওয়ার নাম করে PIN বা রিকোয়েস্ট অ্যাপ্রুভ করাতে চাইছে। টাকা পেতে PIN লাগে না।" },
+  { re:/electricity|bijli|বিদ্যুৎ|বিজলি|(bill|বিল).{0,30}(disconnect|কেটে|কাটা|বিচ্ছিন্ন)/i, pts:2, why:"বিদ্যুৎ সংযোগ কেটে দেওয়ার ভয় দেখাচ্ছে।" },
+  { re:/customs|parcel|courier|fedex|dhl|কুরিয়ার|পার্সেল/i, pts:2, why:"ভুয়ো পার্সেল বা কুরিয়ার মেসেজের ধাঁচ।" },
+  { re:/\.apk\b|install.{0,15}app|download.{0,15}app|anydesk|teamviewer|quicksupport|screen.?shar|অ্যাপ.{0,12}(ইনস্টল|ডাউনলোড)/i, pts:3, why:"অচেনা অ্যাপ ইনস্টল বা স্ক্রিন শেয়ার করতে বলছে। ফোন হ্যাক হতে পারে।" },
+  { re:/bit\.ly|tinyurl|t\.co\/|cutt\.ly|rb\.gy|is\.gd|shorturl|goo\.gl/i, pts:2, why:"ছোট করা লিংক, আসল ঠিকানা লুকানো থাকে।" },
+  { re:/https?:\/\/\S*\.(xyz|top|click|icu|live|shop|site|online|vip|cyou)\b/i, pts:2, why:"সন্দেহজনক ওয়েবসাইটের শেষাংশ (.xyz, .top ইত্যাদি)।" },
+  { re:/https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/i, pts:3, why:"লিংকে নামের বদলে শুধু নম্বর (IP address) আছে।" },
+  { re:/aadhaar|aadhar|আধার|pan card|প্যান কার্ড|bank details|ব্যাংকের তথ্য|card number|কার্ড নম্বর/i, pts:2, why:"ব্যক্তিগত নথি বা ব্যাংকের তথ্য চাইছে।" },
+  { re:/police|cbi|customs officer|পুলিশ|সিবিআই|digital arrest|গ্রেফতার|arrest warrant/i, pts:3, why:"পুলিশ বা সরকারি অফিসারের নাম করে ভয় দেখাচ্ছে।" },
+];
+
+let lastText = "";
+const APP_URL = location.href.split("#")[0];
+
+function check() {
+  const text = document.getElementById("msg").value.trim();
+  if (!text) { alert("আগে মেসেজ পেস্ট করুন"); return; }
+
+  let score = 0; const reasons = [];
+  for (const r of RULES) if (r.re.test(text)) { score += r.pts; reasons.push(r.why); }
+
+  const box = document.getElementById("result");
+  const title = document.getElementById("title");
+  const advice = document.getElementById("advice");
+  const bar = document.getElementById("bar");
+  const list = document.getElementById("reasons");
+  const help = document.getElementById("helpBox");
+  list.innerHTML = "";
+  reasons.forEach(w => { const li = document.createElement("li"); li.textContent = w; list.appendChild(li); });
+
+  const pct = Math.min(100, Math.round(score / 8 * 100));
+  let cls, color;
+  if (score >= 5) {
+    cls = "scam"; color = "var(--red)";
+    title.textContent = "🚨 স্ক্যাম হওয়ার সম্ভাবনা অনেক বেশি";
+    advice.textContent = "লিংকে ক্লিক করবেন না, টাকা পাঠাবেন না, কাউকে OTP দেবেন না। মেসেজটি ডিলিট করুন এবং পরিবারকে সাবধান করুন।";
+    help.style.display = "block";
+    lastText = "🚨 সাবধান! এই মেসেজটি স্ক্যাম মনে হচ্ছে। লিংকে ক্লিক করবেন না, OTP দেবেন না।\nনিজে যাচাই করুন 'সতর্ক' অ্যাপে: " + APP_URL;
+  } else if (score >= 2) {
+    cls = "maybe"; color = "var(--yellow)";
+    title.textContent = "⚠️ সন্দেহজনক, সাবধান থাকুন";
+    advice.textContent = "কিছু লক্ষণ স্ক্যামের মতো। আগে অফিশিয়াল নম্বর বা অ্যাপ দিয়ে যাচাই করুন, তারপর কিছু করুন।";
+    help.style.display = "block";
+    lastText = "⚠️ এই মেসেজে সন্দেহজনক লক্ষণ আছে, সাবধান থাকুন। 'সতর্ক' অ্যাপে যাচাই করুন: " + APP_URL;
+  } else {
+    cls = "safe"; color = "var(--green)";
+    title.textContent = "✅ সরাসরি কোনো স্ক্যামের লক্ষণ পাওয়া যায়নি";
+    advice.textContent = "তবুও OTP/PIN কাউকে দেবেন না, আর অচেনা লিংকে ক্লিকের আগে ভাবুন।";
+    help.style.display = "none";
+    lastText = "মেসেজ স্ক্যাম কিনা যাচাই করুন 'সতর্ক' অ্যাপে (বিনামূল্যে): " + APP_URL;
+  }
+  box.className = "card " + cls;
+  box.style.display = "block";
+  bar.style.background = color; bar.style.width = "0";
+  requestAnimationFrame(() => bar.style.width = (score ? Math.max(pct, 12) : 4) + "%");
+  box.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+
+async function pasteClip() {
+  try { document.getElementById("msg").value = await navigator.clipboard.readText(); }
+  catch (e) { alert("ক্লিপবোর্ড পড়া যায়নি। বক্সে চেপে ধরে 'পেস্ট' করুন।"); }
+}
+function share() { window.open("https://wa.me/?text=" + encodeURIComponent(lastText), "_blank"); }
+function shareApp() {
+  const t = "🛡️ 'সতর্ক': SMS বা WhatsApp মেসেজ স্ক্যাম কিনা ১০ সেকেন্ডে জানুন, একদম ফ্রি!\n" + APP_URL;
+  if (navigator.share) navigator.share({ title:"সতর্ক", text:t }).catch(()=>{});
+  else window.open("https://wa.me/?text=" + encodeURIComponent(t), "_blank");
+}
+function go(p) {
+  document.querySelectorAll(".page").forEach(e => e.classList.remove("active"));
+  document.getElementById("p-" + p).classList.add("active");
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b.dataset.p === p));
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Install + offline ---------- */
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById("installBtn").style.display = "block";
+});
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.finally(() => { deferredPrompt = null; document.getElementById("installBtn").style.display = "none"; });
+}
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
